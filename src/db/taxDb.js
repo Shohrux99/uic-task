@@ -14,6 +14,7 @@ export const initTaxPriceDB = async () => {
     upgrade: async (db) => {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+        store.createIndex("price", "price", { unique: true });
       }
     },
   });

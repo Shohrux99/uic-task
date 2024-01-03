@@ -17,7 +17,6 @@ export const initCartDB = async () => {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
         store.createIndex("productId", "productId", { unique: true });
-        
       }
     },
   });
