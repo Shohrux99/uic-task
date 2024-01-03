@@ -16,7 +16,8 @@ export const initCartDB = async () => {
     upgrade: async (db, oldVersion, newVersion, transaction) => {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-        const productsInDB = await store.getAll();
+        store.createIndex("productId", "productId", { unique: true });
+        
       }
     },
   });
