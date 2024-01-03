@@ -1,11 +1,11 @@
 import ArrowBackIosRoundedIcon from "@mui/icons-material/ArrowBackIosRounded";
 import { Box, Button, Divider, Modal } from "@mui/material";
+import { addToCart, getCartItems } from "db/idb";
+import { useEffect, useMemo, useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 import CardDetails from "../CardDetails";
 import ProductItem from "../ProductItem";
 import styles from "./styles.module.scss";
-import { useEffect, useMemo, useState } from "react";
-import { addToCart, getAllCartItems } from "db/idb";
-import toast, { Toaster } from "react-hot-toast";
 
 const style = {
   position: "absolute",
@@ -52,7 +52,7 @@ export default function MainCard() {
   }, [allProducts]);
 
   const fetchData = () => {
-    getAllCartItems()
+    getCartItems()
       .then((res) => {
         setData(res);
       })
@@ -73,7 +73,7 @@ export default function MainCard() {
   };
 
   useEffect(() => {
-    getAllCartItems()
+    getCartItems()
       .then((res) => {
         setData(res);
       })

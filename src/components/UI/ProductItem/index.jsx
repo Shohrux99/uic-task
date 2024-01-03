@@ -1,5 +1,5 @@
 import { Box, Modal } from "@mui/material";
-import { removeFromCart, updateCartItem } from "db/idb";
+import { removeCartItem, updateCartItem } from "db/idb";
 import { useState } from "react";
 import styles from "./styles.module.scss";
 import toast, { Toaster } from "react-hot-toast";
@@ -22,7 +22,7 @@ export default function ProductItem({ item, fetchData }) {
   const handleClose = () => setOpen(false);
 
   const addQty = () => {
-    updateCartItem({
+    updateCartItem(item?.productId, {
       ...item,
       quantity: item.quantity + 1,
     }).then(() => {
@@ -34,7 +34,7 @@ export default function ProductItem({ item, fetchData }) {
     if (item.quantity === 1) {
       return;
     } else {
-      updateCartItem({
+      updateCartItem(item?.productId, {
         ...item,
         quantity: item.quantity - 1,
       }).then(() => {
@@ -44,7 +44,7 @@ export default function ProductItem({ item, fetchData }) {
   };
 
   const removeItem = () => {
-    removeFromCart(item.productId).then(() => {
+    removeCartItem(item.productId).then(() => {
       fetchData();
       toast.success("Successfully removed from cart!");
     });

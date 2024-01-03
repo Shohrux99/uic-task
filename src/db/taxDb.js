@@ -1,52 +1,37 @@
-import { openDB } from "idb";
+import Dexie from 'dexie';
 
-const DB_NAME = "ShoppingCartDB2";
-const STORE_NAME = "TaxPrice";
+const taxDb = new Dexie('TaxDb');
+taxDb.version(1).stores({
+  tax: '++id, price',
+});
 
-let dbPromise;
-
-export const initTaxPriceDB = async () => {
-  if (dbPromise) {
-    return dbPromise;
-  }
-
-  dbPromise = openDB(DB_NAME, 3, {
-    upgrade: async (db) => {
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-        store.createIndex("price", "price", { unique: true });
-      }
-    },
-  });
-
-  return dbPromise;
-};
-
-const setTaxPrice = async (price) => {
+async function setTaxPrice(price) {
   try {
-    const db = await initTaxPriceDB();
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    await store.put({ id: 1, price });
-    await tx.done;
-    getTaxPrice();
+    await taxDb.tax.clear();
+    await taxDb.tax.add({ price });
   } catch (error) {
-    console.error("Error setting tax price:", error);
+    console.error('Error setting tax price:', error);
   }
-};
+}
 
-export const getTaxPrice = async () => {
+async function getTaxPrice() {
   try {
-    const db = await initTaxPriceDB();
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const store = tx.objectStore(STORE_NAME);
-
-    // Assuming there's a single record with key 1
-    const taxPrice = await store.get(1);
-
-    return taxPrice ? taxPrice.price : setTaxPrice(30);
+    const tax = await taxDb.tax.toArray();
+    return tax.length > 0 ? tax[0].price : null;
   } catch (error) {
-    console.error("Error getting tax price:", error);
-    return 0; // Default value in case of an error
+    console.error('Error getting tax price:', error);
+    return null;
   }
-};
+}
+
+async function setDefaultTaxPrice() {
+  try {
+    const defaultPrice = 10; // Set your default price here
+    await taxDb.tax.clear();
+    await taxDb.tax.add({ price: defaultPrice });
+  } catch (error) {
+    console.error('Error setting default tax price:', error);
+  }
+}
+
+export { setTaxPrice, getTaxPrice, setDefaultTaxPrice };

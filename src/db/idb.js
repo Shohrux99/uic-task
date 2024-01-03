@@ -1,83 +1,42 @@
-import { openDB } from "idb";
+import Dexie from "dexie";
 
-const DB_NAME = "ShoppingCartDB2";
-const STORE_NAME = "CartItems";
+const db = new Dexie("MyDatabase");
 
-let dbPromise;
+db.version(1).stores({
+  cart: "++productId",
+});
 
-export const initCartDB = async () => {
-  const version = await openDB(DB_NAME).then((db) => db.version);
-
-  if (version === 0) {
-    await deleteDB(DB_NAME);
-  }
-
-  dbPromise = openDB(DB_NAME, 3, {
-    upgrade: async (db, oldVersion, newVersion, transaction) => {
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-        store.createIndex("productId", "productId", { unique: true });
-      }
-    },
-  });
-
-  return dbPromise;
-};
-
-
-export const addToCart = async (item) => {
+const addToCart = async (product) => {
   try {
-    const db = await initCartDB();
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    await store.add(item);
-    await tx.done;
+    await db.cart.add(product);
   } catch (error) {
-    console.error("Error adding to cart:", error);
+    console.error("Error adding product to cart:", error);
   }
 };
 
-export const updateCartItem = async (item) => {
+const updateCartItem = async (productId, product) => {
   try {
-    const db = await initCartDB();
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-    await store.put(item);
-    await tx.done;
+    await db.cart.update(productId, product);
   } catch (error) {
     console.error("Error updating cart item:", error);
   }
 };
 
-export const removeFromCart = async (productId) => {
+const removeCartItem = async (cartItemId) => {
   try {
-    const db = await initCartDB();
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-
-    const index = store.index("productId");
-    const cursor = await index.openCursor(IDBKeyRange.only(productId));
-
-    if (cursor) {
-      await store.delete(cursor.primaryKey);
-    }
-
-    await tx.done;
+    await db.cart.delete(cartItemId);
   } catch (error) {
-    console.error("Error removing from cart:", error);
+    console.error("Error removing cart item:", error);
   }
 };
 
-export const getAllCartItems = async () => {
+const getCartItems = async () => {
   try {
-    const db = await initCartDB();
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const store = tx.objectStore(STORE_NAME);
-    const result = await store.getAll();
-    console.log("Fetched cart items:", result);
-    return result;
+    const cartItems = await db.cart.toArray();
+    return cartItems;
   } catch (error) {
-    console.error("Error getting all cart items:", error);
-    return [];
+    console.error("Error getting cart items:", error);
   }
 };
+
+export { db, addToCart, updateCartItem, removeCartItem, getCartItems };

@@ -1,6 +1,6 @@
 import EastRoundedIcon from "@mui/icons-material/EastRounded";
 import { Button, Divider } from "@mui/material";
-import { getTaxPrice } from "db/taxDb";
+import taxDb, { getTaxPrice, setDefaultTaxPrice } from "db/taxDb";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import ReactInputMask from "react-input-mask";
@@ -63,7 +63,11 @@ export default function CardDetails({ data }) {
 
   useEffect(() => {
     getTaxPrice().then((res) => {
-      setTaxPrice(res);
+      if (res === null) {
+        setDefaultTaxPrice();
+      } else {
+        setTaxPrice(res);
+      }
     });
   }, []);
 
